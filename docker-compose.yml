@@ -32,6 +32,12 @@ services:
     ports:
       - "8080:8080"
 
+  budget-service:
+    image: ${BUDGET_IMAGE}
+    networks: [ backend ]
+    ports: ["8002:8080"]
+    depends_on: [ postgres ]
+
 
 volumes:
   pgdata:
