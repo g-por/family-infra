@@ -38,6 +38,11 @@ services:
     ports: ["8002:8080"]
     depends_on: [ postgres ]
 
+  analytic-service:
+    image: ${ANALYTICS_IMAGE}
+    networks: [ backend ]
+    ports: ["8003:8080"]
+    depends_on: [ postgres ]
 
 volumes:
   pgdata:
