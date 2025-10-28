@@ -6,6 +6,10 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      retries: 5
     networks:
       - backend
 
@@ -36,16 +40,29 @@ services:
     image: ${BUDGET_IMAGE}
     networks: [ backend ]
     ports: ["8002:8080"]
-    depends_on: [ postgres ]
+    depends_on: [ rabbitmq, postgres ]
 
   analytic-service:
     image: ${ANALYTICS_IMAGE}
     networks: [ backend ]
     ports: ["8003:8080"]
-    depends_on: [ postgres ]
+    depends_on: [ rabbitmq, postgres ]
+
+  prometheus:
+    image: prom/prometheus
+    ports: [ "9090:9090" ]
+    networks: [ backend ]
+
+  grafana:
+    image: grafana/grafana
+    ports: [ "3000:3000" ]
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks: [ backend ]
 
 volumes:
   pgdata:
+  grafana_data:
 
 networks:
   backend:
