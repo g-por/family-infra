@@ -76,4 +76,3 @@ jobs:
         run: |
           test -f docker-compose.yml
           docker compose --env-file ci.env -f docker-compose.yml config -q
-
