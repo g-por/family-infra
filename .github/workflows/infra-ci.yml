@@ -1,0 +1,67 @@
+name: infra-ci
+
+on:
+  push:
+    branches: [ "**" ]
+    paths:
+      - "**.yml"
+      - "**.yaml"
+      - "docker-compose.yml"
+      - ".github/workflows/**"
+  pull_request:
+    branches: [ "**" ]
+    paths:
+      - "**.yml"
+      - "**.yaml"
+      - "docker-compose.yml"
+      - ".github/workflows/**"
+  workflow_dispatch: {}
+
+jobs:
+  yaml-lint:
+    name: Перевірка YAML
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Запуск yamllint (мʼякі правила)
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          strict: false
+          format: standard
+          config_data: |
+            extends: default
+            rules:
+              line-length: disable
+              truthy: disable
+              document-start: disable
+              comments:
+                min-spaces-from-content: 1
+              indentation:
+                indent-sequences: consistent
+          file_or_dir: "."
+
+  compose-validate:
+    name: Перевірка docker-compose
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Показати версії Docker
+        run: |
+          docker version
+          docker compose version
+
+
+      - name: Використати .env.example як .env (опційно)
+        run: |
+         if [ -f ".env.example" ]; then
+           cp .env.example .env
+         fi
+
+      - name: Валідація синтаксису compose
+        run: |
+          test -f docker-compose.yml
+          docker compose -f docker-compose.yml config -q
