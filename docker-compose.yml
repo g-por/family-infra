@@ -1,51 +1,68 @@
-services: postgres-user: image: postgres:16
+services:
+  postgres-user:
+    image: postgres:16
     container_name: family-postgres-user
-    environment: POSTGRES_DB: ${USER_DB_NAME:-userdb}
+    environment:
+      POSTGRES_DB: ${USER_DB_NAME:-userdb}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    ports: ["5432:5432"]
-    volumes: - pgdata_user:/var/lib/postgresql/data
-    healthcheck: test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
+    ports: [ "5432:5432" ]
+    volumes:
+      - pgdata_user:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}" ]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks: [backend]
+    networks: [ backend ]
     restart: unless-stopped
 
-  postgres-budget: image: postgres:16
+  postgres-budget:
+    image: postgres:16
     container_name: family-postgres-budget
-    environment: POSTGRES_DB: ${BUDGET_DB_NAME:-budgetdb}
+    environment:
+      POSTGRES_DB: ${BUDGET_DB_NAME:-budgetdb}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    ports: ["5433:5432"]
-    volumes: - pgdata_budget:/var/lib/postgresql/data
-    healthcheck: test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
+    ports: [ "5433:5432" ]
+    volumes:
+      - pgdata_budget:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}" ]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks: [backend]
+    networks: [ backend ]
     restart: unless-stopped
 
-  rabbitmq: image: rabbitmq:3.13-management
+  rabbitmq:
+    image: rabbitmq:3.13-management
     container_name: family-rabbitmq
-    environment: RABBITMQ_DEFAULT_USER: ${RABBIT_USER:-guest}
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBIT_PASS:-guest}
-    ports: - "5672:5672"
+    ports:
+      - "5672:5672"
       - "15672:15672"
-    volumes: - rabbitmq_data:/var/lib/rabbitmq
-    healthcheck: test: ["CMD", "rabbitmq-diagnostics", "ping"]
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks: [backend]
+    networks: [ backend ]
     restart: unless-stopped
-    logging: driver: "json-file"
-      options: {max-size: "10m", max-file: "3"}
+    logging:
+      driver: "json-file"
+      options: { max-size: "10m", max-file: "3" }
 
-  user-service: image: ${USER_IMAGE}
+  user-service:
+    image: ${USER_IMAGE}
     container_name: family-user
     env_file: .env
-    environment: SPRING_PROFILES_ACTIVE: docker
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
       DB_URL: jdbc:postgresql://postgres-user:5432/${USER_DB_NAME:-userdb}
       DB_USER: ${POSTGRES_USER:-postgres}
       DB_PASS: ${POSTGRES_PASSWORD:-postgres}
@@ -53,18 +70,22 @@ services: postgres-user: image: postgres:16
       SPRING_DATASOURCE_HIKARI_INITIALIZATIONFAILTIMEOUT: "0"
       SPRING_SQL_INIT_CONTINUE_ON_ERROR: "true"
       SPRING_RABBITMQ_CONNECTION-TIMEOUT: "60000"
-    depends_on: - postgres-user
+    depends_on:
+      - postgres-user
       - rabbitmq
     ports: ["8001:8080"]
-    networks: [backend]
+    networks: [ backend ]
     restart: unless-stopped
-    logging: driver: "json-file"
-      options: {max-size: "10m", max-file: "3"}
+    logging:
+      driver: "json-file"
+      options: { max-size: "10m", max-file: "3" }
 
-  budget-service: image: ${BUDGET_IMAGE}
+  budget-service:
+    image: ${BUDGET_IMAGE}
     container_name: family-budget
     env_file: .env
-    environment: SPRING_PROFILES_ACTIVE: docker
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
       DB_URL: jdbc:postgresql://postgres-budget:5432/${BUDGET_DB_NAME:-budgetdb}
       DB_USER: ${POSTGRES_USER:-postgres}
       DB_PASS: ${POSTGRES_PASSWORD:-postgres}
@@ -72,18 +93,22 @@ services: postgres-user: image: postgres:16
       SPRING_DATASOURCE_HIKARI_INITIALIZATIONFAILTIMEOUT: "0"
       SPRING_SQL_INIT_CONTINUE_ON_ERROR: "true"
       SPRING_RABBITMQ_CONNECTION-TIMEOUT: "60000"
-    depends_on: - postgres-budget
+    depends_on:
+      - postgres-budget
       - rabbitmq
     ports: ["8002:8080"]
-    networks: [backend]
+    networks: [ backend ]
     restart: unless-stopped
-    logging: driver: "json-file"
-      options: {max-size: "10m", max-file: "3"}
+    logging:
+      driver: "json-file"
+      options: { max-size: "10m", max-file: "3" }
 
-  analytic-service: image: ${ANALYTICS_IMAGE}
+  analytic-service:
+    image: ${ANALYTICS_IMAGE}
     container_name: family-analytics
     env_file: .env
-    environment: SPRING_PROFILES_ACTIVE: docker
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
       DB_URL: jdbc:postgresql://postgres-budget:5432/${BUDGET_DB_NAME:-budgetdb}
       DB_USER: ${POSTGRES_USER:-postgres}
       DB_PASS: ${POSTGRES_PASSWORD:-postgres}
@@ -91,53 +116,75 @@ services: postgres-user: image: postgres:16
       SPRING_DATASOURCE_HIKARI_INITIALIZATIONFAILTIMEOUT: "0"
       SPRING_SQL_INIT_CONTINUE_ON_ERROR: "true"
       SPRING_RABBITMQ_CONNECTION-TIMEOUT: "60000"
-    depends_on: - postgres-budget
+    depends_on:
+      - postgres-budget
       - rabbitmq
     ports: ["8003:8080"]
-    networks: [backend]
+    networks: [ backend ]
     restart: unless-stopped
-    logging: driver: "json-file"
-      options: {max-size: "10m", max-file: "3"}
+    logging:
+      driver: "json-file"
+      options: { max-size: "10m", max-file: "3" }
 
-  gateway: image: ${GATEWAY_IMAGE}
+  gateway:
+    image: ${GATEWAY_IMAGE}
     container_name: family-gateway
     env_file: .env
-    environment: SPRING_PROFILES_ACTIVE: docker
-      USERS_URL: http://user-service:8080
-      BUDGET_URL: http://budget-service:8080
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      USERS_URL:   http://user-service:8080
+      BUDGET_URL:  http://budget-service:8080
       ANALYTIC_URL: http://analytic-service:8080
-    depends_on: - user-service
+    depends_on:
+      - user-service
       - budget-service
       - analytic-service
     ports: ["8080:8080"]
-    networks: [frontend, backend]
+    networks: [ frontend, backend ]
     restart: unless-stopped
-    logging: driver: "json-file"
-      options: {max-size: "10m", max-file: "3"}
+    logging:
+      driver: "json-file"
+      options: { max-size: "10m", max-file: "3" }
 
-  prometheus: image: prom/prometheus
+  prometheus:
+    image: prom/prometheus
     container_name: family-prometheus
     ports: ["9090:9090"]
-    volumes: - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    depends_on: - user-service
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - user-service
       - budget-service
       - analytic-service
-    networks: [backend]
+    networks: [ backend ]
     restart: unless-stopped
-    logging: driver: "json-file"
-      options: {max-size: "10m", max-file: "3"}
+    logging:
+      driver: "json-file"
+      options: { max-size: "10m", max-file: "3" }
 
-  grafana: image: grafana/grafana
+  grafana:
+    image: grafana/grafana
     container_name: family-grafana
     ports: ["3000:3000"]
-    volumes: - grafana_data:/var/lib/grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-    depends_on: - prometheus
-    networks: [backend]
+    depends_on:
+      - prometheus
+    networks: [ backend ]
     restart: unless-stopped
-    logging: driver: "json-file"
-      options: {max-size: "10m", max-file: "3"}
+    logging:
+      driver: "json-file"
+      options: { max-size: "10m", max-file: "3" }
 
-volumes: pgdata_user: pgdata_budget: rabbitmq_data: grafana_data: networks: backend: driver: bridge
-  frontend: driver: bridge
+volumes:
+  pgdata_user:
+  pgdata_budget:
+  rabbitmq_data:
+  grafana_data:
 
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge
