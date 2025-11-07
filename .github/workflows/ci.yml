@@ -2,17 +2,17 @@ name: infra-ci
 
 on:
   push:
-    branches: [ "**" ]
+    branches: ["**"]
     paths:
-      - "**.yml"
-      - "**.yaml"
+      - "**/*.yml"
+      - "**/*.yaml"
       - "docker-compose.yml"
       - ".github/workflows/**"
   pull_request:
-    branches: [ "**" ]
+    branches: ["**"]
     paths:
-      - "**.yml"
-      - "**.yaml"
+      - "**/*.yml"
+      - "**/*.yaml"
       - "docker-compose.yml"
       - ".github/workflows/**"
   workflow_dispatch: {}
@@ -54,14 +54,21 @@ jobs:
           docker version
           docker compose version
 
-
-      - name: Використати .env.example як .env (опційно)
+      - name: Підготувати env для Compose (CI)
         run: |
-         if [ -f ".env.example" ]; then
-           cp .env.example .env
-         fi
+          cat > ci.env <<'EOF'
+          USER_IMAGE=ghcr.io/g-por/family-user-service:latest
+          GATEWAY_IMAGE=ghcr.io/g-por/family-gateway:latest
+          ANALYTIC_IMAGE=ghcr.io/g-por/family-analytic-service:latest
+          POSTGRES_PASSWORD=postgres
+          RABBITMQ_DEFAULT_USER=guest
+          RABBITMQ_DEFAULT_PASS=guest
+          EOF
+          echo "------ ci.env ------"
+          sed -n '1,200p' ci.env
+          echo "--------------------"
 
       - name: Валідація синтаксису compose
         run: |
           test -f docker-compose.yml
-          docker compose -f docker-compose.yml config -q
+          docker compose --env-file ci.env -f docker-compose.yml config -q
