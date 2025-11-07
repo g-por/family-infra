@@ -10,7 +10,7 @@ services:
     volumes:
       - pgdata_user:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD","pg_isready","-U","${POSTGRES_USER:-postgres}"]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,7 +28,7 @@ services:
     volumes:
       - pgdata_budget:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD","pg_isready","-U","${POSTGRES_USER:-postgres}"]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -47,7 +47,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
-      test: ["CMD","rabbitmq-diagnostics","ping"]
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -148,7 +148,7 @@ services:
       - budget-service
       - analytic-service
     ports: ["8080:8080"]
-    networks: [frontend,backend]
+    networks: [frontend, backend]
     restart: unless-stopped
     logging:
       driver: "json-file"
