@@ -58,7 +58,7 @@ jobs:
           cat > ci.env <<'EOF'
           USER_IMAGE=ghcr.io/g-por/family-user-service:latest
           GATEWAY_IMAGE=ghcr.io/g-por/family-gateway:latest
-          ANALYTIC_IMAGE=ghcr.io/g-por/family-analytic-service:latest
+          ANALYTICS_IMAGE=ghcr.io/g-por/family-analytic-service:latest
           BUDGET_IMAGE=ghcr.io/g-por/family-budget-service:latest
           POSTGRES_PASSWORD=postgres
           RABBITMQ_DEFAULT_USER=guest
