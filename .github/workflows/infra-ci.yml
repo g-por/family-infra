@@ -66,7 +66,7 @@ jobs:
           EOF
           echo "--- ci.env ---"
           sed -n '1,200p' ci.env
-          
+
       - name: Створити .env для сервісів (env_file)
         run: |
           cp ci.env .env
@@ -76,3 +76,4 @@ jobs:
         run: |
           test -f docker-compose.yml
           docker compose --env-file ci.env -f docker-compose.yml config -q
+          
