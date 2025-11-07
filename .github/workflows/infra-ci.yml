@@ -66,6 +66,11 @@ jobs:
           EOF
           echo "--- ci.env ---"
           sed -n '1,200p' ci.env
+          
+      - name: Створити .env для сервісів (env_file)
+        run: |
+          cp ci.env .env
+          ls -la
 
       - name: Валідація синтаксису compose
         run: |
