@@ -1,0 +1,78 @@
+name: infra-ci
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "**.yml"
+      - "**.yaml"
+      - "docker-compose.yml"
+      - ".github/workflows/**"
+  pull_request:
+    branches: ["**"]
+    paths:
+      - "**.yml"
+      - "**.yaml"
+      - "docker-compose.yml"
+      - ".github/workflows/**"
+  workflow_dispatch: {}
+
+jobs:
+  yaml-lint:
+    name: Перевірка YAML
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: yamllint (мʼякі правила)
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          strict: false
+          format: standard
+          config_data: |
+            extends: default
+            rules:
+              line-length: disable
+              truthy: disable
+              document-start: disable
+              comments:
+                min-spaces-from-content: 1
+              indentation:
+                indent-sequences: consistent
+          file_or_dir: "."
+
+  compose-validate:
+    name: Перевірка docker-compose
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Показати версії Docker
+        run: |
+          docker version
+          docker compose version
+
+      - name: Підготувати ci.env для Compose
+        run: |
+          cat > ci.env <<'EOF'
+          USER_IMAGE=ghcr.io/g-por/family-user-service:latest
+          GATEWAY_IMAGE=ghcr.io/g-por/family-gateway:latest
+          ANALYTICS_IMAGE=ghcr.io/g-por/family-analytic-service:latest
+          BUDGET_IMAGE=ghcr.io/g-por/family-budget-service:latest
+          POSTGRES_PASSWORD=postgres
+          RABBITMQ_DEFAULT_USER=guest
+          RABBITMQ_DEFAULT_PASS=guest
+          EOF
+          echo "--- ci.env ---"
+          sed -n '1,200p' ci.env
+
+      - name: Створити .env для сервісів (env_file)
+        run: |
+          cp ci.env .env
+          ls -la
+
+      - name: Валідація синтаксису compose
+        run: |
+          test -f docker-compose.yml
+          docker compose --env-file ci.env -f docker-compose.yml config -q

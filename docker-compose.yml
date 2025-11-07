@@ -6,15 +6,15 @@ services:
       POSTGRES_DB: ${USER_DB_NAME:-userdb}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    ports: [ "5432:5432" ]
+    ports: ["5432:5432"]
     volumes:
       - pgdata_user:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}" ]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks: [ backend ]
+    networks: [backend]
     restart: unless-stopped
 
   postgres-budget:
@@ -24,15 +24,15 @@ services:
       POSTGRES_DB: ${BUDGET_DB_NAME:-budgetdb}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    ports: [ "5433:5432" ]
+    ports: ["5433:5432"]
     volumes:
       - pgdata_budget:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}" ]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks: [ backend ]
+    networks: [backend]
     restart: unless-stopped
 
   rabbitmq:
@@ -51,11 +51,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks: [ backend ]
+    networks: [backend]
     restart: unless-stopped
     logging:
       driver: "json-file"
-      options: { max-size: "10m", max-file: "3" }
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   user-service:
     image: ${USER_IMAGE}
@@ -74,11 +76,13 @@ services:
       - postgres-user
       - rabbitmq
     ports: ["8001:8080"]
-    networks: [ backend ]
+    networks: [backend]
     restart: unless-stopped
     logging:
       driver: "json-file"
-      options: { max-size: "10m", max-file: "3" }
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   budget-service:
     image: ${BUDGET_IMAGE}
@@ -97,11 +101,13 @@ services:
       - postgres-budget
       - rabbitmq
     ports: ["8002:8080"]
-    networks: [ backend ]
+    networks: [backend]
     restart: unless-stopped
     logging:
       driver: "json-file"
-      options: { max-size: "10m", max-file: "3" }
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   analytic-service:
     image: ${ANALYTICS_IMAGE}
@@ -120,11 +126,13 @@ services:
       - postgres-budget
       - rabbitmq
     ports: ["8003:8080"]
-    networks: [ backend ]
+    networks: [backend]
     restart: unless-stopped
     logging:
       driver: "json-file"
-      options: { max-size: "10m", max-file: "3" }
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   gateway:
     image: ${GATEWAY_IMAGE}
@@ -132,19 +140,21 @@ services:
     env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      USERS_URL:   http://user-service:8080
-      BUDGET_URL:  http://budget-service:8080
+      USERS_URL: http://user-service:8080
+      BUDGET_URL: http://budget-service:8080
       ANALYTIC_URL: http://analytic-service:8080
     depends_on:
       - user-service
       - budget-service
       - analytic-service
     ports: ["8080:8080"]
-    networks: [ frontend, backend ]
+    networks: [frontend, backend]
     restart: unless-stopped
     logging:
       driver: "json-file"
-      options: { max-size: "10m", max-file: "3" }
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   prometheus:
     image: prom/prometheus
@@ -156,11 +166,13 @@ services:
       - user-service
       - budget-service
       - analytic-service
-    networks: [ backend ]
+    networks: [backend]
     restart: unless-stopped
     logging:
       driver: "json-file"
-      options: { max-size: "10m", max-file: "3" }
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   grafana:
     image: grafana/grafana
@@ -171,11 +183,13 @@ services:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
     depends_on:
       - prometheus
-    networks: [ backend ]
+    networks: [backend]
     restart: unless-stopped
     logging:
       driver: "json-file"
-      options: { max-size: "10m", max-file: "3" }
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   pgdata_user:
