@@ -83,8 +83,8 @@ services:
     depends_on:
       - postgres-user
       - rabbitmq
-    ports: [ "8001:8080" ]
-    networks: [ backend ]
+    ports: ["8001:8080"]
+    networks: [backend]
     restart: unless-stopped
     logging:
       driver: "json-file"
