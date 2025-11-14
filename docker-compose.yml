@@ -65,13 +65,21 @@ services:
     env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_URL: jdbc:postgresql://postgres-user:5432/${USER_DB_NAME:-userdb}
-      DB_USER: ${POSTGRES_USER:-postgres}
-      DB_PASS: ${POSTGRES_PASSWORD:-postgres}
+      # keys for db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/${USER_DB_NAME:-userdb}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+
+      SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+      SPRING_SQL_INIT_MODE: "always"
+      SPRING_SQL_INIT_CONTINUE_ON_ERROR: "true"
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
+      SPRING_FLYWAY_ENABLED: "false"
       AMQP_URL: amqp://${RABBIT_USER:-guest}:${RABBIT_PASS:-guest}@rabbitmq:5672
       SPRING_DATASOURCE_HIKARI_INITIALIZATIONFAILTIMEOUT: "0"
-      SPRING_SQL_INIT_CONTINUE_ON_ERROR: "true"
-      SPRING_RABBITMQ_CONNECTION-TIMEOUT: "60000"
+      SPRING_RABBITMQ_CONNECTION_TIMEOUT: "60000"
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER:-family-budget}
     depends_on:
       - postgres-user
       - rabbitmq
