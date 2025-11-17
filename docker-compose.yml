@@ -77,8 +77,8 @@ services:
       SPRING_RABBITMQ_CONNECTION_TIMEOUT: "60000"
       JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: ${JWT_ISSUER:-family-budget}
-      JWT_REFRESH_TOKEN_TTL_DAYS: "14"      # відповідає jwt.refresh-token-ttl-days
-      JWT_ACCESS_TOKEN_TTL_MIN: "60"        # відповідає jwt.access-token-ttl-min
+      JWT_REFRESH_TOKEN_TTL_DAYS: "14"     
+      JWT_ACCESS_TOKEN_TTL_MIN: "60"       
     depends_on:
       postgres-user:
         condition: service_healthy
