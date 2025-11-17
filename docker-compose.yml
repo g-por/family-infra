@@ -35,7 +35,6 @@ services:
     networks: [backend]
     restart: unless-stopped
 
-
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: family-rabbitmq
