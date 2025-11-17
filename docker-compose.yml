@@ -93,6 +93,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
+
   budget-service:
     image: ${BUDGET_IMAGE}
     container_name: family-budget
