@@ -10,7 +10,7 @@ services:
     volumes:
       - pgdata_user:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}", "-d", "${USER_DB_NAME:-userdb}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -64,25 +64,26 @@ services:
     container_name: family-user
     env_file: .env
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      # keys for db
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/${USER_DB_NAME:-userdb}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: "validate"
 
-      SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
-      SPRING_SQL_INIT_MODE: "always"
-      SPRING_SQL_INIT_CONTINUE_ON_ERROR: "true"
-      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
+      SPRING_SQL_INIT_MODE: "never"
+      SPRING_SQL_INIT_CONTINUE_ON_ERROR: "false"
+
       SPRING_FLYWAY_ENABLED: "false"
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration"
+
       AMQP_URL: amqp://${RABBIT_USER:-guest}:${RABBIT_PASS:-guest}@rabbitmq:5672
       SPRING_DATASOURCE_HIKARI_INITIALIZATIONFAILTIMEOUT: "0"
       SPRING_RABBITMQ_CONNECTION_TIMEOUT: "60000"
       JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: ${JWT_ISSUER:-family-budget}
+      JWT_REFRESH_TOKEN_TTL_DAYS: "14"
+      JWT_ACCESS_TOKEN_TTL_MIN: "60"
     depends_on:
-      - postgres-user
-      - rabbitmq
+      postgres-user:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     ports: ["8001:8080"]
     networks: [backend]
     restart: unless-stopped
@@ -91,6 +92,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
 
   budget-service:
     image: ${BUDGET_IMAGE}
@@ -106,8 +108,10 @@ services:
       SPRING_SQL_INIT_CONTINUE_ON_ERROR: "true"
       SPRING_RABBITMQ_CONNECTION-TIMEOUT: "60000"
     depends_on:
-      - postgres-budget
-      - rabbitmq
+      postgres-budget:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     ports: ["8002:8080"]
     networks: [backend]
     restart: unless-stopped
@@ -131,8 +135,10 @@ services:
       SPRING_SQL_INIT_CONTINUE_ON_ERROR: "true"
       SPRING_RABBITMQ_CONNECTION-TIMEOUT: "60000"
     depends_on:
-      - postgres-budget
-      - rabbitmq
+      postgres-budget:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     ports: ["8003:8080"]
     networks: [backend]
     restart: unless-stopped
@@ -152,9 +158,12 @@ services:
       BUDGET_URL: http://budget-service:8080
       ANALYTIC_URL: http://analytic-service:8080
     depends_on:
-      - user-service
-      - budget-service
-      - analytic-service
+      user-service:
+        condition: service_started
+      budget-service:
+        condition: service_started
+      analytic-service:
+        condition: service_started
     ports: ["8080:8080"]
     networks: [frontend, backend]
     restart: unless-stopped
@@ -171,9 +180,12 @@ services:
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     depends_on:
-      - user-service
-      - budget-service
-      - analytic-service
+      user-service:
+        condition: service_started
+      budget-service:
+        condition: service_started
+      analytic-service:
+        condition: service_started
     networks: [backend]
     restart: unless-stopped
     logging:
@@ -190,7 +202,8 @@ services:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_started
     networks: [backend]
     restart: unless-stopped
     logging:
