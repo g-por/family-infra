@@ -97,7 +97,7 @@ services:
   budget-service:
     image: ${BUDGET_IMAGE}
     container_name: family-budget
-    env_file: .env
+#    env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
       DB_URL: jdbc:postgresql://postgres-budget:5432/${BUDGET_DB_NAME:-budgetdb}
